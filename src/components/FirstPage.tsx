@@ -11,16 +11,14 @@ import {
 import background1 from "../assets/background1.svg";
 import background2 from "../assets/background2.svg";
 import AlphabetInputForm from "./AbbretiveSearchInput";
-import { ajarnApi } from "../../api";
-import type { AjarnResponseAbbre } from "@/api/generated";
 import NewInstructorForm from "./NewInstructorForm";
 import { Info } from "lucide-solid";
+import { axiosClient } from "../libs/axios";
+import type { IAjarn } from "../interfaces/ajarn";
 
 const FirstPage: Component = () => {
   const [searchTerm, setSearchTerm] = createSignal("");
-  const [searchResult, setSearchResult] = createSignal<
-    AjarnResponseAbbre | undefined
-  >();
+  const [searchResult, setSearchResult] = createSignal<IAjarn | undefined>();
   const [isLoading, setIsLoading] = createSignal(false);
   const [notFound, setNotFound] = createSignal(false);
   const [lastSearch, setLastSearch] = createSignal("");
@@ -34,9 +32,21 @@ const FirstPage: Component = () => {
     setIsLoading(true);
 
     try {
-      const data = await ajarnApi.getAjarnAbbreByAbbre(
-        searchTerm().toUpperCase(),
+      const data = await axiosClient.get(
+        `/ajarn/abbre/${searchTerm().toUpperCase()}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
       );
+
+      if (data.data.status === 404) {
+        console.log("Not found");
+        setSearchResult(undefined);
+        setNotFound(true);
+        return;
+      }
 
       // Check if data exists
       if (data.data) {

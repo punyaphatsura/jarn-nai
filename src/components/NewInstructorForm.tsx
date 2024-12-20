@@ -1,6 +1,6 @@
 import type { Component } from "solid-js";
 import { createSignal, Match, Switch } from "solid-js";
-import { ajarnApi } from "../../api";
+import { axiosClient } from "../libs/axios";
 
 interface NewInstructorFormProps {
   initialAbbreviation: string;
@@ -46,11 +46,20 @@ const NewInstructorForm: Component<NewInstructorFormProps> = ({
     setIsSubmitting(true);
     setSubmitStatus("");
     try {
-      await ajarnApi.postAjarnRequest({
-        abbreviation: abbreviation.trim(),
-        name: fullName().trim(),
-        department: department().trim(),
-      });
+      await axiosClient.post(
+        "/ajarn/abbre/request",
+        {
+          abbreviation: abbreviation.trim(),
+          name: fullName().trim(),
+          department: department().trim(),
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        },
+      );
       setSubmitStatus("Submission successful! I will review your data ASAP.");
       setFullName("");
       setDepartment("Computer Department"); // Reset department field to default
