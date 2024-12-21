@@ -14,12 +14,33 @@ const AlphabetInputForm: Component<Props> = ({
   handleSubmit,
   isLoading,
 }) => {
-  // const [code, setValue] = createSignal("");
   const inputsRef: HTMLInputElement[] = [];
+
+  const handleInput = (e: Event, index: number) => {
+    const input = e.target as HTMLInputElement;
+    let newChar = input.value.slice(-1).toUpperCase();
+
+    // Only allow A-Z uppercase letters
+    if (/^[A-Z]$/.test(newChar)) {
+      input.value = newChar;
+
+      // Update code state
+      const newCode = value().split("");
+      newCode[index] = newChar;
+      const newValue = newCode.join("");
+      setValue(newValue);
+
+      // Move focus to next input
+      if (index + 1 < 3 || newValue.length < 3) {
+        inputsRef[Math.min(newValue.length, index + 1)].focus();
+      } else {
+        inputsRef[index].blur();
+      }
+    }
+  };
 
   const handleKeyDown = (e: KeyboardEvent, index: number) => {
     const key = e.key.toUpperCase();
-
     // Only allow A-Z uppercase letters
     if (/^[A-Z]$/.test(key)) {
       e.preventDefault();
@@ -75,17 +96,18 @@ const AlphabetInputForm: Component<Props> = ({
         <h1 class="mb-6 text-center text-2xl font-bold text-blue-800">
           Enter Jarn's Abbretive
         </h1>
-
         <div class="mb-6 flex items-center justify-center gap-2">
           {[0, 1, 2].map((index) => (
             <input
               type="text"
               maxLength={1}
               ref={(el) => (inputsRef[index] = el)}
-              onKeyDown={(e) => {
-                handleKeyDown(e, index);
+              onInput={(e) => {
+                if (e.target.value !== "") handleInput(e, index);
               }}
-              onChange={(e) => {}}
+              onKeyDown={(e) => {
+                if (e.key === "Backspace") handleKeyDown(e, index);
+              }}
               value={value()[index] || ""}
               class="size-20 cursor-text rounded-t-lg border-b-2 border-gray-300 text-center text-5xl uppercase transition-all focus:border-blue-800 focus:outline-none active:scale-105"
               style="caret-color: transparent"
